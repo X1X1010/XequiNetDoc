@@ -7,8 +7,9 @@ XequiNet 使用文档
 ==========================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    brief_intro
    installation
+   dataset/index
