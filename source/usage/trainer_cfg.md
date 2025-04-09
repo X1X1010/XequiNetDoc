@@ -49,22 +49,27 @@ trainer:
 ![Warmup](../figures/Warmup.png)
 
 相当于在学习率上 $\alpha_t$ 乘上一个预热系数 $\omega_t \in [0, 1]$，即
+
 $$
     \hat{\alpha}_t = \alpha_t \cdot \omega_t
 $$
 
 ### 线性预热
 线性预热分两种，手动设置预热步数的 `linear` 和自动根据 Adam 类优化器的 $\beta_2$ 值设定预热步数的 `untuned_linear`。其预热系数为：
+
 $$
     \omega_t = \min(1, \frac{t}{\tau})
 $$
+
 其中，$t$ 为当前步数，$\tau$ 为预热步数，对于 `untuned_linear`，$\tau = \lfloor \frac{2}{1-\beta_2} \rfloor$
 
 ### 指数预热
 指数预热同样分两种，预热系数为（这了和官方不一样，官方这里没有 2，我这里是为了和 `untuned_exponential` 保持一致）：
+
 $$
     \omega_t = 1 - \exp(-\frac{2t}{\tau})
 $$
+
 同样，$t$ 为当前步数，$\tau$ 为预热步数，对于 `untuned_exponential`，$\tau = \lfloor \frac{2}{1-\beta_2} \rfloor$
 
 ### RAdam 预热
@@ -83,20 +88,26 @@ $$
 ![Loss](../figures/Loss.png)
 
 - MAE Loss，即 L1 Loss：
+
 $$
     l(\hat{y}, y) = | \hat{y} - y |
 $$
+
 - MSE Loss，即 L2 Loss：
+
 $$
     l(\hat{y}, y) = (\hat{y} - y)^2
 $$
+
 - SmoothL1 Loss：
+
 $$
     l(\hat{y}, y) =  \begin{cases}
         0.5(\hat{y} - y)^2    & | \hat{y} - y | > 1 \\
         | \hat{y} - y | - 0.5 & | \hat{y} - y | \le 1 \\
     \end{cases}
 $$
+
 式中 $\hat{y}$ 表示真值，$y$ 表示预测值。
 
 ### 损失权重
