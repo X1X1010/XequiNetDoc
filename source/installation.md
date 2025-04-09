@@ -7,7 +7,7 @@ git clone https://github.com/X1X1010/XequiNet.git
 cd XequiNet
 conda env create -f environment.yaml -n <env_name>
 ```
-其中 <env_name> 为自定义的环境名字，默认环境名为`archetype`。
+其中 <env_name> 为自定义的环境名字，默认环境名为 `archetype`。
 
 ### 2. 手动安装
 如果自动安装不成功，或希望安装其他版本的库，可以选择手动安装，具体包含以下几个重要的库：

@@ -1,8 +1,8 @@
 # 数据类型介绍
-在 XequiNet 程序中，我们使用的数据点的类型叫做`XequiData`，继承自 PyG 库的`torch_geometric.data.Data`，可以参考[官方文档](​https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Data.html#torch_geometric.data.Data)
+在 XequiNet 程序中，我们使用的数据点的类型叫做 `XequiData`，继承自 PyG 库的 `torch_geometric.data.Data`，可以参考[官方文档](​https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Data.html#torch_geometric.data.Data)
 
 ## 基本性质变量
-一个`XequiData`数据点表示一个化学分子或周期性体系，包含以下基本的性质变量，（`N`表示原子个数）
+一个 `XequiData` 数据点表示一个化学分子或周期性体系，包含以下基本的性质变量，（`N` 表示原子个数）
 
 | 变量名 | 类型 | 形状 | 描述 |
 | - | - | - | - |
@@ -75,7 +75,7 @@ tensor([[[3.5022, 0.0000, 0.0000],
 tensor([[True, True, True]])
 ```
 
-注意`pos`需换为笛卡尔坐标，计算方式为`cart_pos = frac_pos @ cell`，（`@`表示矩阵乘法）
+注意 `pos` 需换为笛卡尔坐标，计算方式为 `cart_pos = frac_pos @ cell`，（`@` 表示矩阵乘法）
 
 ### 示例 3：水合氢离子
 水合氢离子结构如图：
@@ -97,7 +97,7 @@ tensor([1])
 ```
 
 ## 标签性质变量
-我们可以向`XequiData`添加标签性质变量用于训练，主要标签性质包含但不限于下表所示：
+我们可以向 `XequiData` 添加标签性质变量用于训练，主要标签性质包含但不限于下表所示：
 
 | 变量名 | 类型 | 形状 | 描述 |
 | - | - | - | - |
@@ -111,4 +111,4 @@ tensor([1])
 | `polar` | `float, double` | `[1,3,3]` | 晶格矢量（可选） |
 | `cell` | `float, double` | `[1,3,3]` | 极化率张量 |
 
-在上述性质的基础上，也可以自定义其他性质。不过值得注意的是，对于分子级别的性质（如能量，偶极矩等）需要预留一个维度用于 Batch 操作。具体来说，分子的偶极矩的形状应是`[1, 3]`而非单纯的`[3,]`。
+在上述性质的基础上，也可以自定义其他性质。不过值得注意的是，对于分子级别的性质（如能量，偶极矩等）需要预留一个维度用于 Batch 操作。具体来说，分子的偶极矩的形状应是 `[1, 3]` 而非单纯的 `[3,]`。

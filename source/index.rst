@@ -13,3 +13,4 @@ XequiNet 使用文档
    brief_intro
    installation
    dataset/index
+   usage/index
