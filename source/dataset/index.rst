@@ -6,3 +6,5 @@
     :caption: Contents:
 
     datatype
+    create_data
+    radius_graph
