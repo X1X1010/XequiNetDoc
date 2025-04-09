@@ -64,7 +64,7 @@ $$
 其中，$t$ 为当前步数，$\tau$ 为预热步数，对于 `untuned_linear`，$\tau = \lfloor \frac{2}{1-\beta_2} \rfloor$
 
 ### 指数预热
-指数预热同样分两种，预热系数为（这了和官方不一样，官方这里没有 2，我这里是为了和 `untuned_exponential` 保持一致）：
+指数预热同样分两种，预热系数为（这里和官方不一样，官方这里没有 2，我这里是为了和 `untuned_exponential` 保持一致）：
 
 $$
     \omega_t = 1 - \exp(-\frac{2t}{\tau})
