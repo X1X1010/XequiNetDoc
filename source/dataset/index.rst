@@ -8,3 +8,4 @@
     datatype
     create_data
     radius_graph
+    batch

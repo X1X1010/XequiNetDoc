@@ -43,21 +43,21 @@ trainer:
 - MAE Loss，即 L1 Loss：
 
 $$
-    l(\hat{y}, y) = | \hat{y} - y |
+    l \left( \hat{y}, y \right) = \left| \hat{y} - y \right|
 $$
 
 - MSE Loss，即 L2 Loss：
 
 $$
-    l(\hat{y}, y) = (\hat{y} - y)^2
+    l \left( \hat{y}, y \right) = \left( \hat{y} - y \right)^2
 $$
 
 - SmoothL1 Loss：
 
 $$
-    l(\hat{y}, y) =  \begin{cases}
-        0.5(\hat{y} - y)^2    & | \hat{y} - y | > 1 \\
-        | \hat{y} - y | - 0.5 & | \hat{y} - y | \le 1 \\
+    l \left( \hat{y}, y \right) = \begin{cases}
+        0.5 \left( \hat{y} - y \right)^2    & \left| \hat{y} - y \right| > 1 \\
+        \left| \hat{y} - y \right| - 0.5 & \left| \hat{y} - y \right| \le 1 \\
     \end{cases}
 $$
 
@@ -74,7 +74,7 @@ trainer:
       forces: 1000.0
   ...
 ```
-这样就代表着总损失 $\mathcal{L} = 1 \times l(\hat{E}, E) + 1000 \times l(\hat{\mathbf{F}}, \mathbf{F})$。
+这样就代表着总损失 $\mathcal{L} = 1 \times l \left( \hat{E}, E \right) + 1000 \times l \left( \hat{\mathbf{F}}, \mathbf{F} \right)$。
 
 当然 `energy` 和 `forces` 须在数据参数的 `target` 栏中声明，这样程序才会从数据集中读取相应的标签用于损失计算。
 
@@ -123,17 +123,17 @@ trainer:
 
 ![Warmup](../figures/Warmup.png)
 
-相当于在学习率上 $\alpha_t$ 乘上一个预热系数 $\omega_t \in [0, 1]$，即
+相当于在学习率上 $\eta_t$ 乘上一个预热系数 $\omega_t \in \left[ 0, 1 \right]$，即
 
 $$
-    \hat{\alpha}_t = \alpha_t \cdot \omega_t
+    \hat{\eta}_t = \eta_t \cdot \omega_t
 $$
 
 ### 线性预热
 线性预热分两种，手动设置预热步数的 `linear` 和自动根据 Adam 类优化器的 $\beta_2$ 值设定预热步数的 `untuned_linear`。其预热系数为：
 
 $$
-    \omega_t = \min(1, \frac{t}{\tau})
+    \omega_t = \min \left( 1, \frac{t}{\tau} \right)
 $$
 
 其中，$t$ 为当前步数，$\tau$ 为预热步数，对于 `untuned_linear`，$\tau = \lfloor \frac{2}{1-\beta_2} \rfloor$
@@ -142,7 +142,7 @@ $$
 指数预热同样分两种，预热系数为（这里和官方不一样，官方这里没有 2，我这里是为了和 `untuned_exponential` 保持一致）：
 
 $$
-    \omega_t = 1 - \exp(-\frac{2t}{\tau})
+    \omega_t = 1 - \exp \left( -\frac{2t}{\tau} \right)
 $$
 
 同样，$t$ 为当前步数，$\tau$ 为预热步数，对于 `untuned_exponential`，$\tau = \lfloor \frac{2}{1-\beta_2} \rfloor$
@@ -155,9 +155,66 @@ $$
 
 | 关键词 | 类型 | 默认值 | 描述 | 可选参数 |
 | - | - | - | - | - |
-| `lr_scheduler` | `str` | `cosine_annealing` | 学习率调整方式（不区分大小写） | `cosine_annealing`, `cosine_warmup`, `reduce_on_plateau` |
+| `lr_scheduler` | `str` | `cosine_annealing` | 学习率调整方式（不区分大小写） | `cosine_annealing`(`cosine`), `cosine_annealing_warm_restarts`(`cosine_restarts`), `reduce_on_plateau`(`plateau`) |
 | `lr_scheduler_kwargs` | `dict` | `{}` | 传给学习率调整器的参数 | - |
 
+### 余弦退火
+学习率按余弦函数周期性调整，当前第 $t$ 步的学习率 $\eta_t$ 为：
+
+$$
+    \eta_t = \eta_{\min} + \frac{1}{2} \left( \eta_{\max} - \eta_{\min} \right) \left( 1 + \cos{\frac{t}{T_{\max}} \pi} \right)
+$$
+
+式中 $\eta_{\min}$ 和 $\eta_{\max}$ 分别表示最小和最大学习率，$T_{\max}$ 表示余弦函数变化的半周期，学习率变化情况如图所示：
+
+![CosineAnnealing](../figures/CosineAnnealing.png)
+
+尽管上述公式和图像中 `T_max` 表示半周期的**步数**，但是我们一般更想根据 Epoch 数调整，因此参数设置时 `T_max` 指的是半周期 **Epoch 数**，程序会自动调整为步数传给学习率调整器。
+
+```yaml
+trainer:
+  ...
+  max_lr: 1e-3
+  min_lr: 0.0
+  lr_scheduler: cosine_annealing
+  lr_scheduler_kwargs:
+    T_max: 300
+  ...
+```
+
+上述示例即为半周期为 300 **Epochs** 的余弦退火学习率调整器，学习率变化的范围为 0.0 到 1.0×10⁻³。
+
+从使用体验上来说，余弦退火学习率效果还是比较稳定的，用起来也比较省心。
+
+### 余弦退火热重启
+与余弦退火不同，余弦退火冷重启到谷底时是慢慢回升到学习率最大值，而热重启到谷底时会立刻回到最大学习率。
+
+$$
+    \eta_t = \eta_{\min} + \frac{1}{2} \left( \eta_{\max} - \eta_{\min} \right) \left( 1 + \cos{\frac{t - T_k}{T_{k+1} - T_k} \pi} \right) \quad T_k \le t < T_{k+1}
+$$
+
+但是每次余弦下降的半周期都会变为原先的 $\mu$ 倍，即 $T_{k+1} - T_k = \mu^k \tau$，$\tau$ 为初始半周期。更直观的学习率变化图如图所示：
+
+![CosineAnnealingWarmRestarts](../figures/CosineAnnealingWarmRestarts.png)
+
+使用方法为:
+
+```yaml
+trainer:
+  ...
+  max_lr: 1e-3
+  min_lr: 0.0
+  lr_scheduler: cosine_restarts
+  lr_scheduler_kwargs:
+    T_0: 50
+    T_mult: 2
+  ...
+```
+这里 `T_0` 指初始半周期 **Epoch 数**，程序也同样会自动调整为步数，`T_mult` 指的是，每次重启之后半周期值都会乘以这个数，这里设置成 2，意思是每次重启，半周期都变为原来的两倍。
+
+
+
+### 学习率平台衰减
 
 
 ## 其他参数
@@ -166,3 +223,4 @@ $$
 | - | - | - | - |
 | `max_epochs` | `int` | `300` | 最大训练 Epoch 数量 |
 | `grad_clip` | `float` | `null` | 梯度裁剪数值，确保参数梯度的范数不超过该设定值 |
+| 
