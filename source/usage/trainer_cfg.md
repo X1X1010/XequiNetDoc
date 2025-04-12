@@ -36,7 +36,7 @@ trainer:
 | `losses_weight` | `dict[str, float]` | - | 误差函数各项组分的权重 |
 
 ### 损失函数种类
-这里可以用的损失函数有三种，L1 Loss、L2 Loss 和 两者兼具的 SmoothL1 Loss。三者的函数形式和图像如下（图中为了美观给 L2 Loss 成了一个 0.5 的系数）：
+这里可以用的损失函数有三种，L1 Loss、L2 Loss 和 两者兼具的 SmoothL1 Loss。三者的函数形式和图像如下（图中为了美观给 L2 Loss 乘了一个 0.5 的系数）：
 
 ![Loss](../figures/Loss.png)
 
@@ -155,7 +155,7 @@ $$
 
 | 关键词 | 类型 | 默认值 | 描述 | 可选参数 |
 | - | - | - | - | - |
-| `lr_scheduler` | `str` | `cosine_annealing` | 学习率调整方式（不区分大小写） | `cosine_annealing`(`cosine`), `cosine_annealing_warm_restarts`(`cosine_restarts`), `reduce_on_plateau`(`plateau`) |
+| `lr_scheduler` | `str` | `cosine_annealing` | 学习率调整方式（不区分大小写） | `cosine_annealing`(`cosine`), `cosine_annealing_warm_restarts`<br>(`cosine_restarts`), `reduce_on_plateau`(`plateau`) |
 | `lr_scheduler_kwargs` | `dict` | `{}` | 传给学习率调整器的参数 | - |
 
 ### 余弦退火
@@ -176,13 +176,13 @@ trainer:
   ...
   max_lr: 1e-3
   min_lr: 0.0
-  lr_scheduler: cosine_annealing
+  lr_scheduler: cosine_annealing  # cosine
   lr_scheduler_kwargs:
     T_max: 300
   ...
 ```
 
-上述示例即为半周期为 300 **Epochs** 的余弦退火学习率调整器，学习率变化的范围为 0.0 到 1.0×10⁻³。
+上述示例即为半周期为 300 **Epochs** 的余弦退火学习率调整器，学习率变化的范围为 0.0 到 1e-3。
 
 从使用体验上来说，余弦退火学习率效果还是比较稳定的，用起来也比较省心。
 
@@ -204,7 +204,7 @@ trainer:
   ...
   max_lr: 1e-3
   min_lr: 0.0
-  lr_scheduler: cosine_restarts
+  lr_scheduler: cosine_restarts  # cosine_annealing_warm_restarts
   lr_scheduler_kwargs:
     T_0: 50
     T_mult: 2
@@ -213,8 +213,21 @@ trainer:
 这里 `T_0` 指初始半周期 **Epoch 数**，程序也同样会自动调整为步数，`T_mult` 指的是，每次重启之后半周期值都会乘以这个数，这里设置成 2，意思是每次重启，半周期都变为原来的两倍。
 
 
-
 ### 学习率平台衰减
+当验证集误差连续若干 Epoch 未改善时，将学习率降低，直到学习率小于预设的最小学习率时结束训练。直接举例说明：
+
+```yaml
+trainer:
+  ...
+  max_lr: 1e-3
+  min_lr: 1e-6
+  lr_scheduler: reduce_on_plateau  # plateau
+  lr_scheduler_kwargs:
+    factor: 0.5
+    patience: 50
+  ...
+  ```
+意思是学习率从 1e-3 开始，如果连续 50 个 Epoch 验证集误差没有改善，就将学习率乘以 0.5，直到学习率小于 1e-6 停止训练。
 
 
 ## 其他参数
