@@ -229,6 +229,72 @@ trainer:
   ```
 意思是学习率从 1e-3 开始，如果连续 50 个 Epoch 验证集误差没有改善，就将学习率乘以 0.5，直到学习率小于 1e-6 停止训练。
 
+## 提前停止训练
+
+| 关键词 | 类型 | 默认值 | 描述 |
+| - | - | - | - |
+| `early_stoppings` | `dict[str, dict[str, Any]]` | `null` | 字典的键是判断是否早停的性质名，值是另一个字典，用于设置早停的参数，可以设置复数个早停判断标准 |
+| `early_stopping_mode` | `str` | `and` | `and` 表示只有所有判标都达到才停止，`or` 代表只要有判标达到就停止 |
+
+我们直接举例解释
+
+### 示例 1
+
+```yaml
+trainer:
+  ...
+  early_stoppings:
+    energy: {metric: mae, patience: 50, threshold: 0.0, lower_bound: 0.043}
+    forces: {metric: mae, patience: 50, threshold: 0.0, lower_bound: 0.043}
+  early_stopping_mode: and
+```
+
+意思是能量 MAE 连续 50 个 Epoch 没有降低或低于 0.043 时，满足能量早停条件；而力 MAE 连续 50 个 Epoch 没有降低或低于 0.043 时，满足力早停条件。当上述两个条件都满足时训练停止。
+
+### 示例 2
+
+```yaml
+trainer:
+  ...
+  early_stoppings:
+    energy: {metric: rmse, patience: 100, threshold: 0.001}
+    forces: {metric: rmse, lower_bound: 0.043}
+  early_stopping_mode: or
+```
+
+意思是能量 RMSE 连续 100 个 Epoch 没有降低（降低小于 0.001 算作没有降低），即满足能量早停条件；而力 RMSE 小于 0.043 时则满足力早停条件。两者满足其中一项即停止训练。
+
+## 指数移动平均
+| 关键词 | 类型 | 默认值 | 描述 |
+| - | - | - | - |
+| `ema_decay` | `float` | `0.995` | EMA 衰减因子 |
+
+（Exponential Moving Average, EMA），在更新参数时维护一个模型影子参数。我们令 $t$ 时刻的模型参数为 $\theta_t$，影子参数为 $v_t$，$\theta_t$ 照常更新，影子参数更新方式为：
+
+$$
+    v_t = \beta v_{t-1} + \left( 1 - \beta \right) \theta_t
+$$
+
+其中 $\beta$ 就是 EMA 衰减因子。这样做可以理解为保留上一步 99.5% 的参数，只更新 0.5 % 的最新参数。至于为什么称作指数移动平均，是因为如果将上述的递推公式展开成通项公式，
+
+$$
+    v_t = \left( 1 - \beta \right) \sum_0^t \beta^{t-k} \theta_k
+$$
+
+通向公式可以看作一个级数求和，每一项的权重为 $\left( 1 - \beta \right)\beta^{t-k}$，是一个指数函数，因此称为指数平均移动。
+
+## 输出文件相关
+| 关键词 | 类型 | 默认值 | 描述 |
+| - | - | - | - |
+| `save_dir` | `str` | `./` | 保存 Checkpoint 文件、Loss 文件的路径 |
+| `best_k` | `int` | `1` | 保存最好的 k 个 Checkpoint 文件 |
+| `log_file` | `str` | `loss.log` | 记录误差的文件的名字 |
+| `log_steps` | `int` | `50` | 每多少步记录一次 |
+| `log_epochs` | `int` | `1` | 每多少轮记录一次 |
+
+这里要注意的是 `best_k` 会保存最好的 k 个检查点文件，会以 0 - (k-1) 为后缀记录。
+
+比如设置 `best_k` 为 3 时，会保存 `run_name_0.pt`、`run_name_1.pt` 和 `run_name_2.pt`这三个文件，但是要注意的是实际实现上使用一个大根堆实现的，所以这三个文件是没有大小顺序的，按照道理正常结束的训练会告诉你最好的是哪一个。
 
 ## 其他参数
 
@@ -236,4 +302,5 @@ trainer:
 | - | - | - | - |
 | `max_epochs` | `int` | `300` | 最大训练 Epoch 数量 |
 | `grad_clip` | `float` | `null` | 梯度裁剪数值，确保参数梯度的范数不超过该设定值 |
-| 
+| `seed` | `int` | `null` | 随机数种子 |
+| `num_workers` | `int` | 0 | 用于载入和预处理数据使用的额外 CPU 进程数 |
