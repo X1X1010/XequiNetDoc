@@ -119,7 +119,7 @@ trainer:
 | `warmup_scheduler` | `str` | `linear` | 学习率预热方式（不区分大小写） | `null`, `linear`, `exponential`, `untuned_linear`, `untuned_exponential`, `RAdam` |
 | `warmup_epochs` | `int` | `10` | 学习率预热 Epoch 数 | - |
 
-学习率预热是使用的 [pytorch-warmup](https://pypi.org/project/pytorch-warmup/) 库，简单来说就是将学习率缓缓从 0 开始上升，避免初始学习率过大导致训练不稳定的问题。`warmup_epochs` 仅针对 `linear` 和 `exponential` 生效，程序会将预热的 Epoch 数量换算成梯度下降的步数。以余弦学习率变化为例，下图为 2500 步（不是 Epoch）预热的学习率变化图：
+学习率预热是使用的 [pytorch-warmup](https://pypi.org/project/pytorch-warmup/) 库，简单来说就是将学习率缓缓从 0 开始上升，避免初始学习率过大导致训练不稳定的问题。`warmup_epochs` 仅针对 `linear` 和 `exponential` 生效，程序会将预热的 Epoch 数量换算成梯度下降的步数。以余弦学习率变化为例，下图为预热步数为 $\tau$ 的学习率变化趋势：
 
 ![Warmup](../figures/Warmup.png)
 
