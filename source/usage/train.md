@@ -59,5 +59,127 @@ xeq train --config config.yaml
 - `config` / `-C`：CONFIG 文件的名字，默认为 `config.yaml`
 
 ## 示例
-我们使用 Water 1593 这个数据集作为例子（https://doi.org/10.1073/pnas.1815117116）
+我们使用 Water 1593 这个数据集作为例子（<https://doi.org/10.1073/pnas.1815117116>）
 
+我们首先准备数据集([下载链接](https://github.com/X1X1010/XequiNetDoc/raw/refs/heads/main/source/example/water-1593.zip))，解压放在某处，比如`/scratch/datasets/water-1593/`
+
+目录如下
+
+```shell
+/scratch/datasets/water-1593
+  ├─ data.lmdb
+  ├─ info.json
+  └─ random42.json
+```
+
+然后准备 `config.yaml` 文件，如下：
+
+```yaml
+model:
+  model_name: xpainn
+  model_kwargs:
+    node_dim: 128
+    node_irreps: 128x0e+64x1o+32x2e
+    embed_basis: gfn2-xtb
+    aux_basis: aux56
+    num_basis: 20
+    rbf_kernel: bessel
+    cutoff: 5.0
+    cutoff_fn: cosine
+    action_blocks: 3
+    activation: silu
+    norm_type: layer
+    hidden_dim: 64
+    output_modes: [energy]
+  default_units:
+    energy: eV
+    pos: Angstrom
+
+data:
+  db_path: /scratch/datasets/water-1593
+  cutoff: 5.0
+  split: random42
+  targets: [energy, forces]
+  default_dtype: float32
+  batch_size: 16
+  valid_batch_size: 16
+
+trainer:
+  run_name: water
+  warmup_scheduler: linear
+  warmup_epochs: 10
+  max_epochs: 100
+  max_lr: 5e-4
+  min_lr: 0.0
+  lossfn: smoothl1
+  losses_weight:
+    energy: 1.0
+    forces: 100.0
+  optimizer: AdamW
+  lr_scheduler: cosine_annealing
+  lr_scheduler_kwargs:
+    T_max: 100
+  ema_decay: 0.995
+  num_workers: 2
+  
+  save_dir: ./
+  best_k: 1
+  log_steps: 100
+  log_file: loss.log
+```
+
+之后运行命令
+
+```bash
+torchrun --nproc_per_node=1 --master_port=30000 --no-python xeq train --config config.yaml > net_config.log 2>&1
+```
+
+接着会出现若干文件，其中一个是 `net_config.log`，这个是将标准输出流的内容重定向到的文件，主要信息包括模型的结构，
+
+```
+INFO - XPaiNN(
+  (mods): ModuleDict(
+    (embedding): XEmbedding(
+      (embedding): Sequential(
+        (0): Int2c1eEmbedding()
+        (1): Linear(in_features=56, out_features=128, bias=True)
+      )
+      (sph_harm): SphericalHarmonics()
+      (rbf): SphericalBesselj0()
+      (cutoff_fn): CosineCutoff()
+    )
+    (message_0): XPainnMessage(
+...
+```
+
+以及参数名和参数量（当然还有警告和报错信息🤡）。
+
+```
+INFO - module.mods.embedding.embedding.1.weight: 7168
+INFO - module.mods.embedding.embedding.1.bias: 128
+INFO - module.mods.embedding.rbf.freq: 20
+...
+INFO - module.mods.output_energy.out_mlp.2.weight: 64
+INFO - module.mods.output_energy.out_mlp.2.bias: 1
+INFO - Total number of parameters to be optimized: 865141
+```
+
+另一个文件是 `loss.log`，事实记录误差情况。
+
+```
+2025-04-15 18:50:45 - INFO - Start training
+2025-04-15 18:50:45 - INFO - Task Name: water
+2025-04-15 18:50:45 - INFO - Property: pos Unit: Angstrom
+2025-04-15 18:50:45 - INFO - Property: energy Unit: eV
+2025-04-15 18:50:45 - INFO - Property: forces Unit: eV/Angstrom
+2025-04-15 18:50:45 - INFO - Property: virial Unit: eV/Angstrom^3
+2025-04-15 18:52:01 - INFO -               Epoch     Step         LR    Energy    Energy/atom    Forces
+2025-04-15 18:52:01 - INFO - Train  MAE        1  [79/79]  5.062e-05     57.82         0.3012    0.7386
+2025-04-15 18:52:01 - INFO - Train RMSE                                  62.82         0.3272    1.012
+2025-04-15 18:52:06 - INFO -                   Energy    Energy/atom    Forces
+2025-04-15 18:52:06 - INFO - EMA Valid  MAE       556          2.896     1.177
+2025-04-15 18:52:06 - INFO - EMA Valid RMSE     556.2          2.897     1.768
+...
+```
+
+另外就是检查点文件了，因为 `best_k` 设的 1，所以会报错 MAE 最低的 1 个模型，即 `water_0.pt`；另外会保存上一个 Epoch 结束时的模型 `water_last.pt`。
