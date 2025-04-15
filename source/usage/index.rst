@@ -7,3 +7,4 @@
 
     units
     trainer_cfg
+    data_cfg
