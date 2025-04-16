@@ -183,3 +183,13 @@ INFO - Total number of parameters to be optimized: 865141
 ```
 
 另外就是检查点文件了，因为 `best_k` 设的 1，所以会报错 MAE 最低的 1 个模型，即 `water_0.pt`；另外会保存上一个 Epoch 结束时的模型 `water_last.pt`。
+
+训练完成之后 `loss.log` 会出现以下信息：
+```
+...
+2025-04-15 20:36:18 - INFO - Training Completed
+2025-04-15 20:36:18 - INFO - Best Valid MAE: 7.19884
+2025-04-15 20:36:18 - INFO - Best Checkpoint: ./water-bulk_0.pt at Epoch 100
+```
+
+这里的最好的 MAE 是乘以 Loss 权重之后的结果，最好的结果来自第 100 个 Epoch。当然这个模型只是随便训训的，效果可能不怎么样😄。
