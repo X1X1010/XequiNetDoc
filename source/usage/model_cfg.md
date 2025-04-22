@@ -44,13 +44,52 @@
 | `cutoff_fn` | `str` | `cosine` | 平滑截断函数的类型 | `cosine`, `polynomial` |
 | `cutoff` | `float` | `5.0` | 截断半径长度 | |
 
-径向基函数的选择还是比较玄学的，比如我在训练时发现球 Bessel 基（<https://doi.org/10.48550/arXiv.2003.03123>）效果比较好，但也有的模型使用 Gaussian 基（<https://doi.org/10.1063/1.5019779>），而有的任务上 Exponential Norm 基（<https://doi.org/10.1021/acs.jctc.9b00181>）又表现不错。所以这里也是调参的一个可选项。具体公式这里就不写了，感兴趣可以看相关文献，形状可以参考下图：
+径向基函数的选择还是比较玄学的，比如我在训练时发现球 Bessel 基（<https://doi.org/10.48550/arXiv.2003.03123>）效果比较好，但也有的模型使用 Gaussian 基（<https://doi.org/10.1063/1.5019779>），而有的任务上 Exponential Norm 基（<https://doi.org/10.1021/acs.jctc.9b00181>）又表现不错。所以这里也是调参的一个可选项。
+
+1. 零阶球 Bessel 基，也就是 Sinc 函数：
+
+$$
+    R_k \left( r_{ij} \right) = \sqrt{\frac{2}{c}} \frac{\sin\left( f_k r_{ij} \right)}{r_{ij}} u(r_{ij}) \\
+    f_k := \frac{k \pi}{c}
+$$
+
+2. 高斯函数：
+
+$$
+    R_k \left( r_{ij} \right) = \frac{1}{\sigma_k \sqrt{2\pi}} \exp \left[ - \frac{1}{2} \left( \frac{r_{ij} - \mu_k}{\sigma_k} \right)^2 \right] u(r_{ij}) \\
+    \mu = \frac{\left( k - 1 \right) c}{N} \quad \sigma := 1
+$$
+
+3. ExpNorm，也就是 PhysNet 所使用的径向函数：
+
+$$
+    R_k \left( r_{ij} \right) = \exp\left[ -\beta_k \left( \text{e}^{-r_{ij}} - \mu_k \right)^2 \right] u(r_{ij}) \\
+    \beta_k = \left[ \frac{2}{k} \left( 1 - \text{e}^{-c} \right) \right]^{-2} \quad \mu_k = 1 - \frac{\left( k - 1 \right) \left( 1 - \text{e}^{-c}\right)}{N}
+$$
+
+函数图像可以参考下图：
 
 ![RBF](../figures/RBF.png)
 
 这几幅图是初始化的图像，并且已经乘上了平滑截断，训练时候会优化参数，但是大致形状应该不会有明显变化。
 
-然后时平滑截断的选择，主要有余弦截断和多项式截断，形状大差不差，都可以用。公式也不写了，几乎每个图网络的文章都会介绍。
+然后是平滑截断的选择，主要有余弦截断和多项式截断。形状大差不差，都可以用。
+
+余弦截断的表达式为：
+
+$$
+    u\left( r_{ij} \right) = \frac{1}{2} \left[ \cos \left( \frac{r_{ij}}{c} \pi \right) + 1 \right]
+$$
+
+多项式截断的表达式为：
+
+$$
+    u\left( r_{ij} \right) = 1 - 10 \left( \frac{r_{ij}}{c} \right)^3
+    + 15 \left( \frac{r_{ij}}{c} \right)^4
+    - 6 \left( \frac{r_{ij}}{c} \right)^5
+$$
+
+图像如下：
 
 ![Cutoff](../figures/Cutoff.png)
 
