@@ -6,7 +6,8 @@
     :caption: Contents:
 
     units
-    train
     model_cfg
     data_cfg
     trainer_cfg
+    train
+    test
