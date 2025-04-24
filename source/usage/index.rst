@@ -11,3 +11,5 @@
     trainer_cfg
     train
     test
+    inference
+    geom_opt

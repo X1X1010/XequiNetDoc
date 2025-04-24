@@ -48,13 +48,13 @@ xeq test --config config.yaml --ckpt xxx.pt
 
 其他命令行参数如下：
 - `--config` / `-C`：测试用的 CONFIG 文件的名字，默认为 `config.yaml`
-- `--ckpt` / `-c`：模型文件名
+- `--ckpt` / `-c`：检查点模型文件名
 - `--device`：`cuda` 或 `cpu`，默认会检查是否有可用的 GPU，有的话使用 `cuda`，没有的话使用 `cpu`
 - `--output` / `-o`：输出文件的名字，默认为 `<run_name>.log`，`<run_name>` 为 CONFIG 文件中指定的任务名
 - `--verbose` / `-v`：是否打印更详细的输出，并将测试结果保存到 `.pt` 文件中。
 
 ## 示例
-我们接着使用 Water 1593 这个数据集作为例子（<https://doi.org/10.1073/pnas.1815117116>）。经过[训练](./train.md/)之后会获得模型文件——`water_0.pt`，然后 CONFIG 文件沿用训练的 CONFIG 即可。
+我们接着使用 Water 1593 这个数据集作为例子（<https://doi.org/10.1073/pnas.1815117116>）。经过[训练](./train.md#示例)之后会获得模型文件——`water_0.pt`，然后 CONFIG 文件沿用训练的 CONFIG 即可。
 
 执行命令
 
