@@ -14,3 +14,4 @@ XequiNet 使用文档
    installation
    dataset/index
    usage/index
+   deployment/index
