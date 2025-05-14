@@ -13,3 +13,4 @@
     test
     inference
     geom_opt
+    md_ase
