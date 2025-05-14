@@ -2,7 +2,7 @@
 ## 环境安装
 ### 1. 自动安装
 建议使用 Conda 配置环境，具体环境配置文件见`environment.yaml`，可以使用以下命令拉取 Github 仓库并安装环境。
-```bash
+```shell
 git clone https://github.com/X1X1010/XequiNet.git
 cd XequiNet
 conda env create -f environment.yaml -n <env_name>
