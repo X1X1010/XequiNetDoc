@@ -6,3 +6,4 @@
     :caption: Contents:
 
     jit_script
+    lammps
